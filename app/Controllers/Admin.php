@@ -3,6 +3,8 @@
 namespace App\Controllers;
 use App\Models\M_instansi;
 use App\Models\M_inst_param;
+use App\Models\M_Bsps;
+use App\Models\M_history;
 
 
 class Admin extends BaseController
@@ -30,6 +32,11 @@ class Admin extends BaseController
 
     public function laporanNormatif()
     {
+        return view('adminLayout/v_laporan_normatif');
+    }
+
+    public function laporanNormatifInst()
+    {
         // $instansi = new M_instansi();
         // $data = $instansi->getInstansi();
         // dd($data->getResultArray());
@@ -42,10 +49,10 @@ class Admin extends BaseController
 
 
         $arr = [
-            'data' => $data
+            'res' => $data
         ];
 
-        return view('adminLayout/v_laporan_normatif', $arr);
+        return view('adminLayout/v_laporan_normatif_inst', $arr);
     }
 
     public function upload()
@@ -63,7 +70,6 @@ class Admin extends BaseController
         // dd($data['fileXls']);
 
         $extension = $file->getClientExtension();
-
         if('xls' == $extension){
             $reader = new \PhpOffice\PhpSpreadsheet\Reader\Xls();
         } else {
@@ -199,17 +205,152 @@ class Admin extends BaseController
 
         if(!empty($inst)){
             session()->setFlashData('succAddInst', 'Data Instansi berhasil Ditambahkan!');
-            return redirect()->route('admin/laporan_normatif');
+            return redirect()->route('admin/laporan_normatif_inst');
         }else{
             session()->setFlashData('errAddInst', 'Data Instansi gagal Ditambahkan!');
             return view('/adminLayout/v_tambah_instansi');
         }
-
-
     }
 
     public function cariInstansi()
     {
         return view ('adminLayout/v_cari_instansi');
     }
+
+    public function cariInstById()
+    {
+        $kd_instansi = $this->request->getPost('kd_instansi');
+        $inst = new M_instansi();
+        $res = $inst->getById($kd_instansi);
+
+        $data = [
+            'res' => $res,
+            'show' => true
+        ];
+
+        return view ('adminLayout/v_cari_instansi', $data);
+
+
+    }
+
+    public function cariInstByName()
+    {
+        $nama = $this->request->getPost('nama');
+        $inst = new M_instansi();
+        $res = $inst->getByName($nama);
+
+        $data = [
+            'res' => $res,
+            'show' => true
+        ];
+
+        return view ('adminLayout/v_cari_instansi', $data);
+    }
+
+    public function detailInstansi($kd_instansi)
+    {
+        $inst = new M_instansi();
+        $data['res'] = $inst->getById($kd_instansi);
+        return view ('adminLayout/v_detail_inst', $data);
+    }
+
+    public function exportPdf()
+    {
+        $inst = new M_instansi();
+        $data = $inst->findAll();
+
+        dd($data);
+    }
+
+    public function pilihLaporan()
+    {
+        $laporan = $this->request->getPost('laporan');
+        $inst = new M_instansi();
+        $bsps = new M_bsps();
+        $show = false;
+        if (empty($laporan)) {
+            $data = $inst->getInstansi();
+
+
+            $arr = [
+                'res' => $data
+            ];
+
+        return view('adminLayout/v_laporan_normatif', $arr);
+        }
+
+        
+
+        if($laporan == 'inst'){
+            $res = $inst->getInstansi();
+
+            $data = [
+                'res' => $res,
+                'jenis' => 'inst',
+                'show' => $show
+            ];
+
+            return view('adminLayout/v_laporan_normatif', $data);
+            
+        }else if($laporan == 'bsps'){
+            $res = $bsps->getBsps();
+
+            $data = [
+                'res' => $res,
+                'jenis' => 'bsps',
+                'show' => $show
+            ];
+            return view('adminLayout/v_laporan_normatif', $data);
+
+        }
+
+    }
+
+    public function historyVa()
+    {
+        return view('adminLayout/v_history_va');
+    }
+
+    public function rekeningKoran()
+    {
+        $tgl_awal = $this->request->getPost('tgl_awal');
+        $tgl_akhir = $this->request->getPost('tgl_akhir');
+        $no_va = $this->request->getPost('no_va');
+
+        // dd($tgl_akhir, $tgl_akhir);
+
+        $history = new M_history();
+        $bsps = new M_bsps();
+        $name = $bsps->getName($no_va)->getResult();
+        // dd($name);
+        $sql = $history->getRekeningKoran($tgl_awal, $tgl_akhir, $no_va)->getResult();
+        
+        $data = [
+            'sql' => $sql,
+            'tgl_awal' => $tgl_awal,
+            'tgl_akhir' => $tgl_akhir,
+            'no_va' => $no_va,
+            'name' => $name
+        ];
+
+        return view('adminLayout/v_history_va', $data);
+        
+    }
+
+    public function printVa($tgl_awal, $tgl_akhir, $no_va)
+    {
+        $history = new M_history();
+        $bsps = new M_bsps();
+        $name = $bsps->getName($no_va)->getResult();
+        $sql = $history->getRekeningKoran($tgl_awal, $tgl_akhir, $no_va)->getResult();
+        
+        $data = [
+            'sql' => $sql,
+            'no_va' => $no_va,
+            'name' => $name
+        ];
+
+        return view('adminLayout/v_print_history_va', $data);
+    }
+    
 }

@@ -7,7 +7,7 @@
     </div>
     <div class="row">
         <div class="centerBox">
-            <form class="row g-3" action="<?= '/Admin/cariRekening' ?>" method="post">
+            <form class="row g-3" action="<?= base_url('/Admin/cariRekening') ?>" method="post">
                 <div class="col-auto">
                     <label for="norek" class="visually-hidden">Nomor Rekening</label>
                     <input type="text" class="form-control" id="norek" placeholder="Nomor Rekening" name="norek">
@@ -45,7 +45,7 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    <form action="<?= '/Admin/aksi_tambah_inst' ?>" method="post">
+                    <form action="<?= base_url('/Admin/aksi_tambah_inst') ?>" method="post">
                         <div class="row mb-3">
                             <label for="nama" class="col-sm-2 col-form-label">Nama Instansi</label>
                             <div class="col-sm-10">

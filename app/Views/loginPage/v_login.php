@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" type="text/css" href="/assets/css/bootstrap.css">
+    <link rel="stylesheet" type="text/css" href="<?= base_url('/assets/css/bootstrap.css')?>">
     <title>Vape: Virtual Account Payment</title>
     <style>
         form {
@@ -44,9 +44,9 @@
             <div class="col-md-4">
                 <main class="form-signin">
                     
-                    <form action="<?= 'Login/actionLogin' ?>" method="post">
+                    <form action="<?= base_url()?>/Login/actionLogin" method="post">
                         <div class="title-login">
-                            <img  src="/assets/img/bp.png" alt="" width="240" height="120">
+                            <img  src="<?= base_url() ?> /assets/img/bp.png" alt="" width="240" height="120">
                             <!-- <h1 class="h3 mb-3 fw-normal">Silahkan Login</h1> -->
 
                         </div>
@@ -78,7 +78,7 @@
     </div>
     
 
-    <script src="/assets/js/bootstrap.js"></script>
-    <script src="/assets/js/button.js"></script>
+    <script src="<?= base_url()?>/assets/js/bootstrap.js"></script>
+    <script src="<?= base_url()?>/assets/js/button.js"></script>
     
 </html>

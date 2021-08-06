@@ -65,16 +65,23 @@ nav {
   text-decoration: none;
 }
 
-nav a:hover {
+/* nav a:hover {
   color: white !important;
 }
 
 nav a {
   color: black !important;
-}
+} */
 
+.blackme {
+  color: white;
+}
 .hide {
   display: none;
+}
+
+a .kanan {
+  margin-right: 15px;
 }
 
 /* .navbar-header{

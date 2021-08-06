@@ -35,9 +35,12 @@ $routes->setAutoRoute(true);
 $routes->get('/', 'Login::index');
 $routes->get('/home', 'Admin::index');
 $routes->get('/admin/tambah_instansi', 'Admin::tambahInstansi');
-$routes->get('/admin/laporan_normatif', 'Admin::laporanNormatif');
+$routes->get('/admin/laporan_normatif', 'Admin::pilihLaporan');
+$routes->get('/admin/laporan_normatif_inst', 'Admin::laporanNormatifInst');
 $routes->get('/admin/upload', 'Admin::upload');
 $routes->get('/admin/cari_instansi', 'Admin::cariInstansi');
+$routes->get('/admin/history_va', 'Admin::historyVa');
+$routes->get('/admin/print_history', 'Admin::printVa');
 // $routes->get('/admin/cariRekening', 'Admin::cariRekening');
 // $routes->get('/test', 'Login::actionLogin');
 

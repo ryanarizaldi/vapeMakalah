@@ -63,7 +63,6 @@ class Login extends BaseController
 
             $response = json_decode($result, true);
 
-
             curl_close($ch);
 
              if($response['rCode'] == 00){
@@ -84,5 +83,12 @@ class Login extends BaseController
                 // print_r($result['rCode']);
             }
 
-    }
+            
+        }
+        
+        public function logout()
+        {
+            session()->destroy();
+            return redirect()->to('/');
+        }
 }

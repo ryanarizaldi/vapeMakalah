@@ -34,7 +34,17 @@ class M_instansi extends Model
         return $this->insert($data);
     }
 
-    
+    public function getById($kd_instansi)
+    {
+        // $mres = $this->query('SELECT *WHERE kd_instansi = 0001');
+        $data = $this->table('instansi')->like('kd_instansi', $kd_instansi)->findAll();
+        return $data;
+        // $asd = $this->findAll();
+    }
 
- 
+    public function getByName($nama)
+    {
+        $res = $this->table('instansi')->like('nama', $nama)->findAll();
+        return $res;
+    }
 }
