@@ -40,7 +40,7 @@
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
                                 <li><a class="dropdown-item" href="<?= base_url() ?>/admin/cari_instansi">Pencarian Instansi</a></li>
-                                <li><a class="dropdown-item" href="<?= base_url() ?>/admin/cari_instansi">Pencarian Virtual Account</a></li>
+                                <li><a class="dropdown-item" href="<?= base_url() ?>/admin/cari_va">Pencarian Virtual Account</a></li>
                             </ul>
                         </li>
                         

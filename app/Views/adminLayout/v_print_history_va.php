@@ -33,7 +33,6 @@
                         <th scope="col">Id</th>
                         <th scope="col">Tanggal</th>
                         <th scope="col">Nomor Arsip</th>
-                        <!-- <th scope="col">Nomor VA</th> -->
                         <th scope="col">Keterangan</th>
                         <th scope="col">Jumlah Transaksi</th>
                         <th scope="col">Saldo</th>

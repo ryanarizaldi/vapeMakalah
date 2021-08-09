@@ -36,7 +36,16 @@
                         <div class="d-flex justify-content-end">
                             <button class="btn btn-primary">Cari</button>
                         </div>
-                    </form>    
+                    </form> 
+                    <?php if(!empty(session()->getFlashData('errHistory'))){ ?> 
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <?php echo session()->getFlashdata('errHistory'); ?>
+                        </div>  
+                    <?php }else if(!empty(session()->getFlashData('succHistory'))){ ?>   
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <?php echo session()->getFlashdata('succHistory'); ?>
+                        </div>  
+                    <?php } ?>   
                 </div>
                 <?php if(!empty($sql)): ?>
                     <div class="container">

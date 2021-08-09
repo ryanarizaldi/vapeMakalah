@@ -41,6 +41,7 @@ $routes->get('/admin/upload', 'Admin::upload');
 $routes->get('/admin/cari_instansi', 'Admin::cariInstansi');
 $routes->get('/admin/history_va', 'Admin::historyVa');
 $routes->get('/admin/print_history', 'Admin::printVa');
+$routes->get('/admin/cari_va', 'Admin::cariVa');
 // $routes->get('/admin/cariRekening', 'Admin::cariRekening');
 // $routes->get('/test', 'Login::actionLogin');
 
