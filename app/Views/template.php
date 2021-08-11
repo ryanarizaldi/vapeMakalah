@@ -49,7 +49,8 @@
                                 <strong class="blackme">Laporan </strong>
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-                                <li><a class="dropdown-item" href="<?= base_url() ?>/admin/laporan_normatif">Laporan Nominatif</a></li>
+                                <li><a class="dropdown-item" href="<?= base_url() ?>/admin/laporan_normatif_inst">Nominatif Instansi</a></li>
+                                <li><a class="dropdown-item" href="<?= base_url() ?>/admin/laporan_normatif_va">Nominatif Virtual Account</a></li>
                                 <li><a class="dropdown-item" href="<?= base_url() ?>/admin/history_va">History VA</a></li>
                             </ul>
                         </li>

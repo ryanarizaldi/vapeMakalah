@@ -2,23 +2,28 @@
 <?= $this->section('content') ?>
 
     <div class="contentTitle">
-        <h3>Laporan Nominatif <?php if(isset($jenis) && $jenis == 'inst' ){echo "Instansi";}else if(isset($jenis) && $jenis == 'bsps' ){echo "BSPS";} ?></h3>
+        <h3>Laporan Nominatif Instansi <?php if(isset($jenis) && $jenis == 'inst' ){echo "Instansi";}else if(isset($jenis) && $jenis == 'bsps' ){echo "BSPS";} ?></h3>
     </div>
 
-    <div class="container">
+    <!-- <div class="container">
         <div class="row">
-            <div class="col-md-12">
-                <form action="<?= base_url() ?>/admin/pilihLaporan"method="post">
-                    <select class="custom-select custom-select-lg mb-3" name="laporan">
-                        <option selected disabled>Pilih Jenis Laporan</option>
-                        <option value="inst">Laporan Instansi</option>
-                        <option value="bsps">Laporan BSPS</option>
-                    </select> 
-                    <button type="submit" class="btn btn-sm btn-primary">Pilih</button> 
-                </form>
+            <div class="col-md-4"></div>
+            <div class="col-md-4 ">
+                <div class="row">
+                    <form action="<?= base_url() ?>/admin/pilihLaporan"method="post">
+                        <select class="form-select mb-3" name="laporan">
+                            <option selected disabled>Pilih Jenis Laporan</option>
+                            <option value="inst">Laporan Instansi</option>
+                            <option value="bsps">Laporan BSPS</option>
+                        </select> 
+                        <button type="submit" class="btn btn-sm btn-primary">Pilih</button> 
+                    </form>
+
+                </div>
             </div>
+            <div class="col-md-4"></div>
         </div>
-    </div>
+    </div> -->
 
     <div class="container">
         <div class="row">

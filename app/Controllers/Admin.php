@@ -5,6 +5,7 @@ use App\Models\M_instansi;
 use App\Models\M_inst_param;
 use App\Models\M_Bsps;
 use App\Models\M_history;
+use App\Models\M_va;
 
 
 class Admin extends BaseController
@@ -146,7 +147,6 @@ class Admin extends BaseController
 
 
             curl_close($ch);
-// dd($result);
             if ($result['rCode'] == 00) {
                session()->setFlashData('succCari', 'Rekening atas nama: '.$result['result']['FULLNM'].'. Ditemukan');
                $show = true;
@@ -242,6 +242,26 @@ class Admin extends BaseController
         return view ('adminLayout/v_cari_instansi', $data);
     }
 
+    public function cariVaByKdInst()
+    {
+        $kd_instansi = $this->request->getPost('kd_instansi');
+        $va = new M_va();
+        $res = $va->getByKdInst($kd_instansi)->getResultArray();
+        if (!empty($res)) {
+            
+            session()->setFlashData('sucCariVa', 'Data VA Ditemukan!');
+        }else{
+            session()->setFlashData('errCariVaa', "Data VA Tidak Ditemukan! Periksa Kembali Kode Instansi Anda. Kode yang Dimasukkan : $kd_instansi");
+            return redirect()->to('/admin/laporan_normatif_va');
+        }
+        $data = [
+            'res' => $res
+            ];
+        return view('adminLayout/v_laporan_normatif_va', $data);
+
+
+    }
+
     public function detailInstansi($kd_instansi)
     {
         $inst = new M_instansi();
@@ -256,7 +276,54 @@ class Admin extends BaseController
 
         dd($data);
     }
+    public function viewLapNomVa()
+    {
+        return view('adminLayout/v_laporan_normatif_va');
+    }
 
+    public function laporanNomVa()
+    {
+        $laporan = $this->request->getPost('laporan');
+        $inst = new M_instansi();
+        $bsps = new M_bsps();
+        $show = false;
+        if (empty($laporan)) {
+            $data = $inst->getInstansi();
+
+
+            $arr = [
+                'res' => $data
+            ];
+
+        return view('adminLayout/v_laporan_normatif', $arr);
+        }
+
+        
+
+        if($laporan == 'inst'){
+            $res = $inst->getInstansi();
+
+            $data = [
+                'res' => $res,
+                'jenis' => 'inst',
+                'show' => $show
+            ];
+
+            return view('adminLayout/v_laporan_normatif', $data);
+            
+        }else if($laporan == 'bsps'){
+            $res = $bsps->getBsps();
+
+            $data = [
+                'res' => $res,
+                'jenis' => 'bsps',
+                'show' => $show
+            ];
+            return view('adminLayout/v_laporan_normatif', $data);
+
+        }
+
+    }
     public function pilihLaporan()
     {
         $laporan = $this->request->getPost('laporan');
@@ -392,165 +459,231 @@ class Admin extends BaseController
 
     public function actionCariVa()
     {
-        $bsps = new M_bsps();
-        $history = new M_history();
-	    // $validation =  \Config\Services::validation();
-         $data['validation'] = \Config\Services::validation();
+        $data['validation'] = \Config\Services::validation();
+        $va = new M_va();
 
-
-
-        $va = $this->request->getPost('va');
+        $byVa = $this->request->getPost('byVa');
         $inNama = $this->request->getPost('inNama');
-        $no_va = $this->request->getPost('no_va');
+        $kd_va = $this->request->getPost('kd_va');
         $nama = $this->request->getPost('nama');
-        $opsi = $this->request->getPost('opsi');
+        // echo "by";
+        // dd($byVa);
 
-        // $validation->setRules([
-        //     'nama' => 'required',
-        //     'no_va' => 'required',
-        //     'opsi' => 'required',
-        //     // 'password' => 'required|min_length[10]'
-        // ]);
+        if ($byVa) {
+            // echo "hai";
+            // die();
+            if (!$this->validate([
+                        'kd_va' => [
+                            'rules' => 'required',
+                            'errors' => [
+                                'required' => 'Nomor Virtual Account Harus diisi!'
+                            ]
+                        ]
+                    ])) {
+                session()->setFlashdata('errCariVa', $this->validator->listErrors());
+                return redirect()->back()->withInput();
+            } else {
+                $sql = $va->getByKdVa($kd_va)->getResultArray();
+                if (empty($sql)) {
+                    session()->setFlashdata('errCariVa', "Data Dengan Nomor VA: $kd_va Tidak Ditemukan!");
+                    return redirect()->to('/admin/cari_va');
+                } else {
+                    session()->setFlashdata('succCariVa', "Data Ditemukan!");
+                    $data =[
+                        'sql' => $sql
+                    ];
+                    return view('adminLayout/v_pencarian_va', $data);
+                }
+            }
+        } else if ($inNama) {
+            if (!$this->validate([
+                        'nama' => [
+                            'rules' => 'required',
+                            'errors' => [
+                                'required' => 'Nama harus diisi!'
+                            ]
+                        ]
+                    ])) {
+                session()->setFlashdata('errCariVa', $this->validator->listErrors());
+                return redirect()->back()->withInput();
+            } else {
+                $sql = $va->getByName($nama)->getResultArray();
+                if (empty($sql)) {
+                    session()->setFlashdata('errCariVa', "Data Atas Nama '$nama' Tidak Ditemukan!");
+                    return redirect()->to('/admin/cari_va');
+                } else{
+                    session()->setFlashdata('succCariVa', "Data Ditemukan!");
+                    $data =[
+                        'sql' => $sql
+                    ];
+                    return view('adminLayout/v_pencarian_va', $data);
+                }
+            }
+        }
+    }
+
+    //ini fungsi action cari va yang lama
+    // public function actionCariVa()
+    // {
+    //     $bsps = new M_bsps();
+    //     $history = new M_history();
+	//     // $validation =  \Config\Services::validation();
+    //      $data['validation'] = \Config\Services::validation();
+
+
+
+    //     $va = $this->request->getPost('va');
+    //     $inNama = $this->request->getPost('inNama');
+    //     $no_va = $this->request->getPost('no_va');
+    //     $nama = $this->request->getPost('nama');
+    //     $opsi = $this->request->getPost('opsi');
+
+    //     // $validation->setRules([
+    //     //     'nama' => 'required',
+    //     //     'no_va' => 'required',
+    //     //     'opsi' => 'required',
+    //     //     // 'password' => 'required|min_length[10]'
+    //     // ]);
         
 
-        if ($va) {
+    //     if ($va) {
 
-            if ($opsi == 'inst') {
-                if (!$this->validate([
-                        'no_va' => [
-                            'rules' => 'required',
-                            'errors' => [
-                                'required' => 'Nomor Rekening Harus diisi!'
-                            ]
-                        ]
-                    ])) {
-                        session()->setFlashdata('errCariVa', $this->validator->listErrors());
-                        return redirect()->back()->withInput();
-                    } else {
-                        $namaVa = $bsps->getName($no_va)->getResultArray();
-                        $sql = $history->getByVa($no_va)->getResultArray();
+    //         if ($opsi == 'inst') {
+    //             if (!$this->validate([
+    //                     'no_va' => [
+    //                         'rules' => 'required',
+    //                         'errors' => [
+    //                             'required' => 'Nomor Rekening Harus diisi!'
+    //                         ]
+    //                     ]
+    //                 ])) {
+    //                     session()->setFlashdata('errCariVa', $this->validator->listErrors());
+    //                     return redirect()->back()->withInput();
+    //                 } else {
+    //                     $namaVa = $bsps->getName($no_va)->getResultArray();
+    //                     $sql = $history->getByVa($no_va)->getResultArray();
 
-                        // dd($namaVa, $sql);
+    //                     // dd($namaVa, $sql);
 
-                        if (!empty($namaVa) && !empty($sql)) {
-                            $data = [
-                            'nama' => $namaVa,
-                            'sql' => $sql,
-                            'opsi' => $opsi
-                            ];
-                            session()->setFlashData('succCariVa', 'Data Berhasil Dicari');
-                            return view('adminLayout/v_pencarian_va', $data);
-                        } else {
-                            session()->setFlashData('errCariVa', "Rekening $no_va Tidak Ditemukan");
-                            return redirect()->back()->withInput();
-                        }
-                    }
+    //                     if (!empty($namaVa) && !empty($sql)) {
+    //                         $data = [
+    //                         'nama' => $namaVa,
+    //                         'sql' => $sql,
+    //                         'opsi' => $opsi
+    //                         ];
+    //                         session()->setFlashData('succCariVa', 'Data Berhasil Dicari');
+    //                         return view('adminLayout/v_pencarian_va', $data);
+    //                     } else {
+    //                         session()->setFlashData('errCariVa', "Rekening $no_va Tidak Ditemukan");
+    //                         return redirect()->back()->withInput();
+    //                     }
+    //                 }
 
-            } else if($opsi == 'bsps') {
-                if (!$this->validate([
-                        'no_va' => [
-                            'rules' => 'required',
-                            'errors' => [
-                                'required' => 'Nomor Rekening Harus diisi!'
-                            ]
-                        ]
-                    ])) {
-                        session()->setFlashdata('errCariVa', $this->validator->listErrors());
-                        return redirect()->back()->withInput();
-                    } else {
-                        $sql = $bsps->getByVa($no_va)->getResultArray();
-                        if (!empty($sql)) {
-                            $data = [
-                            'sql' => $sql,
-                            'opsi' => $opsi
-                                ];
-                            session()->setFlashData('succCariVa', 'Data Berhasil Dicari');
-                            return view('adminLayout/v_pencarian_va', $data);
-                        } else {
-                            session()->setFlashData('errCariVa', "Nomor Rekening $no_va Tidak Ditemukan");
-                            return redirect()->back()->withInput();
+    //         } else if($opsi == 'bsps') {
+    //             if (!$this->validate([
+    //                     'no_va' => [
+    //                         'rules' => 'required',
+    //                         'errors' => [
+    //                             'required' => 'Nomor Rekening Harus diisi!'
+    //                         ]
+    //                     ]
+    //                 ])) {
+    //                     session()->setFlashdata('errCariVa', $this->validator->listErrors());
+    //                     return redirect()->back()->withInput();
+    //                 } else {
+    //                     $sql = $bsps->getByVa($no_va)->getResultArray();
+    //                     if (!empty($sql)) {
+    //                         $data = [
+    //                         'sql' => $sql,
+    //                         'opsi' => $opsi
+    //                             ];
+    //                         session()->setFlashData('succCariVa', 'Data Berhasil Dicari');
+    //                         return view('adminLayout/v_pencarian_va', $data);
+    //                     } else {
+    //                         session()->setFlashData('errCariVa', "Nomor Rekening $no_va Tidak Ditemukan");
+    //                         return redirect()->back()->withInput();
 
-                        }
-                    }
+    //                     }
+    //                 }
                 
-            } else {
-                session()->setFlashdata('errCariVa', "Silahkan Pilih Instansi Terlebih Dahulu!");
-                return redirect()->back()->withInput();
-            }
+    //         } else {
+    //             session()->setFlashdata('errCariVa', "Silahkan Pilih Instansi Terlebih Dahulu!");
+    //             return redirect()->back()->withInput();
+    //         }
 
-        } else if ($inNama) {
+    //     } else if ($inNama) {
 
-            if ($opsi == 'inst') {
-                if (!$this->validate([
-                        'nama' => [
-                            'rules' => 'required',
-                            'errors' => [
-                                'required' => 'Nama Pemegang Rekening Harus diisi!'
-                            ]
-                        ]
-                    ])) {
-                        session()->setFlashdata('errCariVa', $this->validator->listErrors());
-                        return redirect()->back()->withInput();
-                    } else {
-                        $noVa = $bsps->getVaByName($nama)->getResultArray();
-                        if (empty($noVa)) {
-                            session()->setFlashData('errCariVa', "Nama Pemegang Rekening $nama Tidak Ditemukan");
-                            return redirect()->back()->withInput();
-                        }
-                        $str = implode(" ", $noVa[0]);
-                        $namaVa = $bsps->getName($str)->getResultArray();
-                        $sql = $history->getByVa($str)->getResultArray();
+    //         if ($opsi == 'inst') {
+    //             if (!$this->validate([
+    //                     'nama' => [
+    //                         'rules' => 'required',
+    //                         'errors' => [
+    //                             'required' => 'Nama Pemegang Rekening Harus diisi!'
+    //                         ]
+    //                     ]
+    //                 ])) {
+    //                     session()->setFlashdata('errCariVa', $this->validator->listErrors());
+    //                     return redirect()->back()->withInput();
+    //                 } else {
+    //                     $noVa = $bsps->getVaByName($nama)->getResultArray();
+    //                     if (empty($noVa)) {
+    //                         session()->setFlashData('errCariVa', "Nama Pemegang Rekening $nama Tidak Ditemukan");
+    //                         return redirect()->back()->withInput();
+    //                     }
+    //                     $str = implode(" ", $noVa[0]);
+    //                     $namaVa = $bsps->getName($str)->getResultArray();
+    //                     $sql = $history->getByVa($str)->getResultArray();
 
-                        if (!empty($namaVa) && !empty($sql)) {
-                            $data = [
-                            'nama' => $namaVa,
-                            'sql' => $sql,
-                            'opsi' => $opsi
-                        ];
-                        session()->setFlashData('succCariVa', 'Data Berhasil Dicari');
-                        return view('adminLayout/v_pencarian_va', $data);
-                        } else {
-                            session()->setFlashData('errCariVa', "Nama Pemegang Rekening $nama Tidak Ditemukan");
-                            return redirect()->back()->withInput();
-                        }
+    //                     if (!empty($namaVa) && !empty($sql)) {
+    //                         $data = [
+    //                         'nama' => $namaVa,
+    //                         'sql' => $sql,
+    //                         'opsi' => $opsi
+    //                     ];
+    //                     session()->setFlashData('succCariVa', 'Data Berhasil Dicari');
+    //                     return view('adminLayout/v_pencarian_va', $data);
+    //                     } else {
+    //                         session()->setFlashData('errCariVa', "Nama Pemegang Rekening $nama Tidak Ditemukan");
+    //                         return redirect()->back()->withInput();
+    //                     }
                         
-                    }
+    //                 }
                 
 
-            } else if($opsi == 'bsps') {
-                if (!$this->validate([
-                        'nama' => [
-                            'rules' => 'required',
-                            'errors' => [
-                                'required' => 'Nama Pemegang Rekening Harus diisi!'
-                            ]
-                        ]
-                    ])) {
-                        session()->setFlashdata('errCariVa', $this->validator->listErrors());
-                        return redirect()->back()->withInput();
-                    } else {
-                        $sql = $bsps->getAllByName($nama)->getResultArray();
-                        if (!empty($sql)) {
-                            $data = [
-                            'sql' => $sql,
-                            'opsi' => $opsi
-                            ];
-                            session()->setFlashData('succCariVa', 'Data Berhasil Dicari');
-                            return view('adminLayout/v_pencarian_va', $data);
-                        } else {
-                            session()->setFlashData('errCariVa', "nama Pemegang Rekening $nama Tidak Ditemukan");
-                            return redirect()->back()->withInput();
+    //         } else if($opsi == 'bsps') {
+    //             if (!$this->validate([
+    //                     'nama' => [
+    //                         'rules' => 'required',
+    //                         'errors' => [
+    //                             'required' => 'Nama Pemegang Rekening Harus diisi!'
+    //                         ]
+    //                     ]
+    //                 ])) {
+    //                     session()->setFlashdata('errCariVa', $this->validator->listErrors());
+    //                     return redirect()->back()->withInput();
+    //                 } else {
+    //                     $sql = $bsps->getAllByName($nama)->getResultArray();
+    //                     if (!empty($sql)) {
+    //                         $data = [
+    //                         'sql' => $sql,
+    //                         'opsi' => $opsi
+    //                         ];
+    //                         session()->setFlashData('succCariVa', 'Data Berhasil Dicari');
+    //                         return view('adminLayout/v_pencarian_va', $data);
+    //                     } else {
+    //                         session()->setFlashData('errCariVa', "nama Pemegang Rekening $nama Tidak Ditemukan");
+    //                         return redirect()->back()->withInput();
 
-                        }
+    //                     }
                         
-                    }
+    //                 }
                 
-            }
-        } else {
-            session()->setFlashdata('errCariVa', "Silahkan Pilih Instansi Terlebih Dahulu!");
-            return redirect()->back()->withInput();
-        }
+    //         }
+    //     } else {
+    //         session()->setFlashdata('errCariVa', "Silahkan Pilih Instansi Terlebih Dahulu!");
+    //         return redirect()->back()->withInput();
+    //     }
 
-    }
+    // }
     
 }
