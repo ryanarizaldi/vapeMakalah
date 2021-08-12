@@ -12,7 +12,7 @@ class UsersAuthFilter implements FilterInterface
     {
         if(is_null(session()->get('logged_in')))
         {
-            session()->setFlashData('error', "Silahkan Login Terlebih Dahulu !");
+            // session()->setFlashData('error', "Silahkan Login Terlebih Dahulu !");
             return redirect()->to(base_url('login/index'));
         }
 

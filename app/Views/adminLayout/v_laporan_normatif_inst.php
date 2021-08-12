@@ -44,9 +44,9 @@
         </div>
         <div class="row mt-3">
             <div class="d-flex justify-content-end">
-                <a href="<?= base_url() ?>/Admin/exportPdf" class="btn btn-primary">PDF</a>
+                <!-- <a href="<?= base_url() ?>/Admin/exportPdf" class="btn btn-primary">PDF</a> -->
                 
-                <a href="" class="btn btn-success">XLS</a>
+                <a href="<?= base_url() ?>/Admin/exportLapToXls" class="btn btn-success">XLS</a>
             </div>
         </div>
     </div>

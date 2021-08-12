@@ -16,7 +16,7 @@ class Login extends BaseController
     
     public function index()
     {
-        echo view('loginPage/v_login');
+        return view('loginPage/v_login');
         // echo "asd";
     }
 
@@ -81,9 +81,16 @@ class Login extends BaseController
         $response = json_decode($result, true);
 
         curl_close($ch);
+        // dd(empty($response));
+            
 
-            if($response['rCode'] == 00){
-
+        // if (empty($response)) {
+        //     echo "asd";
+        //     session()->setFlashdata('error', 'Terjadi Kesalahan, Silahkan Coba Lagi Dalam Beberapa Saat');
+        //     return redirect()->to('/');
+        // }
+        // dd($response);
+        if($response['rCode'] == 00){
             session()->set([
                 'nama' => $response['result']['USERMAP']['USERNM'],
                 'cabang' => $response['result']['BRANCHMAP']['BRANCHNM'],
@@ -91,15 +98,16 @@ class Login extends BaseController
                 'logged_in' => TRUE
             ]);
             return redirect()->to(base_url('Admin'));
-        }else{
-
-           
-            session()->setFlashdata('error', $response['message'].'. Error Code: '.$response['rCode']);
-            return redirect()->route('/');
-            
+        } else {
+            session()->setFlashdata('error', "ini err messagenya");
+            // session()->setFlashdata('error', $response['message'].'. Error Code: '.$response['rCode']);
+            $errmsg = session()->getFlashdata('error');
+            // echo $errmsg;
+            // dd($errmsg);
+            return redirect()->to(base_url( 'login' ));
+            // return redirect()->to('/');
+            // return redirect()->to(base_url('Login'));
         }
-
-        
     }
         
         public function logout()

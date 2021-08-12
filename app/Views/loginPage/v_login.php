@@ -44,12 +44,16 @@
             <div class="col-md-4">
                 <main class="form-signin">
                     
-                    <form action="<?= base_url()?>/Login/actionLogin" method="post">
+                    <form action="<?= base_url()?>/Login/actionLogin" method="post">    
                         <div class="title-login">
                             <img  src="<?= base_url() ?> /assets/img/bp.png" alt="" width="240" height="120">
                             <!-- <h1 class="h3 mb-3 fw-normal">Silahkan Login</h1> -->
 
                         </div>
+                        <?php 
+                            $asd = session()->getFlashdata('error');
+                            // dd($asd);
+                        ?>
                         <?php if (!empty(session()->getFlashdata('error'))) : ?>
                             <div class="alert alert-danger alert-dismissible fade show" role="alert">
                                 <?php echo session()->getFlashdata('error'); ?>

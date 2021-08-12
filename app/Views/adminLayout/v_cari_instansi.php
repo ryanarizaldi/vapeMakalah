@@ -35,6 +35,17 @@
                             </div>
                         </div>
                     </form>
+                    <div class="row mt-3">
+                        <?php if(!empty(session()->getFlashdata('errCariInstansi'))){ ?>
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                <?php echo session()->getFlashdata('errCariInstansi'); ?>
+                            </div>
+                        <?php }else if(!empty(session()->getFlashdata('succCariInstansi'))){ ?>
+                            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                <?php echo session()->getFlashdata('succCariInstansi'); ?>
+                            </div>
+                        <?php } ?>
+                    </div>
                 </div>
             </div>
         </div>

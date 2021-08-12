@@ -1,6 +1,11 @@
 <?php
 
 namespace App\Controllers;
+// require 'vendor/autoload.php';
+
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+
 use App\Models\M_instansi;
 use App\Models\M_inst_param;
 use App\Models\M_Bsps;
@@ -127,21 +132,11 @@ class Admin extends BaseController
             //set the content type to application/json
             curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type:application/json'));
 
-            //return response instead of outputting
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
-            //execute the POST request
             $response = curl_exec($ch);
-
-            //close cURL resource
-            // $data = json_decode($result->getBody()->getContents(), true);
             
             $info = curl_getinfo($ch);
-            
-            // $response = [
-            //     'headers' => substr($result, 0, $info["header_size"]),
-            //     'body' => substr($result, $info["header_size"]),
-            // ];
 
             $result = json_decode($response, true);
 
@@ -160,8 +155,6 @@ class Admin extends BaseController
                 'norek' => $norek
             ];
             // dd($data);
-            
-
             return view('/adminlayout/v_tambah_instansi', $data);
             
     }
@@ -215,51 +208,117 @@ class Admin extends BaseController
     public function cariInstById()
     {
         $kd_instansi = $this->request->getPost('kd_instansi');
-        $inst = new M_instansi();
-        $res = $inst->getById($kd_instansi);
-
-        $data = [
-            'res' => $res,
-            'show' => true
-        ];
-
-        return view ('adminLayout/v_cari_instansi', $data);
-
-
+        if (!$this->validate([
+                        'kd_instansi' => [
+                            'rules' => 'required',
+                            'errors' => [
+                                'required' => 'Nomor Kode Instansi Harus diisi!'
+                            ]
+                        ]
+                    ])) {
+                session()->setFlashdata('errCariInstansi', $this->validator->listErrors());
+                return redirect()->back()->withInput();
+            } else {
+                $inst = new M_instansi();
+                $res = $inst->getById($kd_instansi);
+                if (!empty($res)) {
+                    $data = [
+                    'res' => $res,
+                    'show' => true
+                    ];
+                    session()->setFlashdata('succCariInstansi', 'Data Berhasil Ditemukan!');
+                    return view ('adminLayout/v_cari_instansi', $data);
+                } else {
+                    session()->setFlashdata('errCariInstansi', "Data Dengan Keyword: '$kd_instansi' tidak Ditemukan!");
+                    return redirect()->back()->withInput();
+                }
+                
+            }
+       
     }
 
     public function cariInstByName()
     {
         $nama = $this->request->getPost('nama');
-        $inst = new M_instansi();
-        $res = $inst->getByName($nama);
-
-        $data = [
-            'res' => $res,
-            'show' => true
-        ];
-
-        return view ('adminLayout/v_cari_instansi', $data);
+        if (!$this->validate([
+                        'nama' => [
+                            'rules' => 'required',
+                            'errors' => [
+                                'required' => 'Field Nama Instansi Harus diisi!'
+                            ]
+                        ]
+                    ])) {
+                session()->setFlashdata('errCariInstansi', $this->validator->listErrors());
+                return redirect()->back()->withInput();
+            } else {
+                $inst = new M_instansi();
+                $res = $inst->getByName($nama);
+                if (!empty($res)) {
+                    $data = [
+                    'res' => $res,
+                    'show' => true
+                    ];
+                    session()->setFlashdata('succCariInstansi', 'Data Berhasil Ditemukan!');
+                    return view ('adminLayout/v_cari_instansi', $data);
+                } else {
+                    session()->setFlashdata('errCariInstansi', "Data Dengan Keyword: '$nama' tidak Ditemukan!");
+                    return redirect()->back()->withInput();
+                }
+                
+            }
+        
     }
 
     public function cariVaByKdInst()
     {
         $kd_instansi = $this->request->getPost('kd_instansi');
-        $va = new M_va();
-        $res = $va->getByKdInst($kd_instansi)->getResultArray();
-        if (!empty($res)) {
+        if (!$this->validate([
+                    'kd_instansi' => [
+                        'rules' => 'required',
+                        'errors' => [
+                            'required' => 'Field Kode Instansi Harus diisi!'
+                        ]
+                    ]
+                ])) {
+            session()->setFlashdata('errCariVaa', $this->validator->listErrors());
+            return redirect()->back()->withInput();
+        } else {
+            if ($kd_instansi == 1212) {
+                $bsps = new M_bsps();
+                $res = $bsps->findAll();
+
+                if (!empty($res)) {
+                    session()->setFlashData('sucCariVa', 'Data VA Ditemukan!');
+                    $data = [
+                    'res' => $res,
+                    'bsps' => true,
+                    'kd_inst' => $kd_instansi
+                    ];
+                    return view('adminLayout/v_laporan_normatif_va', $data);
+                }else{
+                    session()->setFlashData('errCariVaa', "Data VA Tidak Ditemukan! Periksa Kembali Kode Instansi Anda. Kode yang Dimasukkan : $kd_instansi");
+                    return redirect()->to('/admin/laporan_normatif_va');
+                }
+
+            } else {
+                $va = new M_va();
+                $res = $va->getByKdInst($kd_instansi)->getResultArray();
+                if (!empty($res)) {
+                    session()->setFlashData('sucCariVa', 'Data VA Ditemukan!');
+                    $data = [
+                    'res' => $res,
+                    'kd_inst' => $kd_instansi
+                    ];
+                return view('adminLayout/v_laporan_normatif_va', $data);
+                }else{
+                    session()->setFlashData('errCariVaa', "Data VA Tidak Ditemukan! Periksa Kembali Kode Instansi Anda. Kode yang Dimasukkan : $kd_instansi");
+                    return redirect()->to('/admin/laporan_normatif_va');
+                }
+                
+            }
             
-            session()->setFlashData('sucCariVa', 'Data VA Ditemukan!');
-        }else{
-            session()->setFlashData('errCariVaa', "Data VA Tidak Ditemukan! Periksa Kembali Kode Instansi Anda. Kode yang Dimasukkan : $kd_instansi");
-            return redirect()->to('/admin/laporan_normatif_va');
         }
-        $data = [
-            'res' => $res
-            ];
-        return view('adminLayout/v_laporan_normatif_va', $data);
-
-
+        
     }
 
     public function detailInstansi($kd_instansi)
@@ -284,21 +343,18 @@ class Admin extends BaseController
     public function laporanNomVa()
     {
         $laporan = $this->request->getPost('laporan');
+
         $inst = new M_instansi();
         $bsps = new M_bsps();
         $show = false;
         if (empty($laporan)) {
             $data = $inst->getInstansi();
-
-
             $arr = [
                 'res' => $data
             ];
 
         return view('adminLayout/v_laporan_normatif', $arr);
         }
-
-        
 
         if($laporan == 'inst'){
             $res = $inst->getInstansi();
@@ -520,6 +576,117 @@ class Admin extends BaseController
                 }
             }
         }
+    }
+
+    public function exportVaToXls($kd_inst)
+    {
+        $spreadsheet = new Spreadsheet();
+
+        if ($kd_inst == 1212) {
+            $bsps = new M_bsps();
+            $res = $bsps->findAll();
+
+            $spreadsheet->setActiveSheetIndex(0)
+            ->setCellValue('A1', 'Kode Instansi')
+            ->setCellValue('B1', 'No VA')
+            ->setCellValue('C1', 'Nama')
+            ->setCellValue('D1', 'Saldo')
+            ->setCellValue('E1', 'Rekening BSPS')
+            ->setCellValue('F1', 'Rekening Penampung')
+            ->setCellValue('G1', 'Rekening Toko')
+            ->setCellValue('H1', 'Timestamp');
+
+            $column = 2;
+
+            foreach ($res as $key) {
+                $spreadsheet->setActiveSheetIndex(0)
+                    ->setCellValue('A' . $column, $key['kd_instansi'])
+                    ->setCellValue('B' . $column, "`".$key['no_va'])
+                    ->setCellValue('C' . $column, $key['nama'])
+                    ->setCellValue('D' . $column, $key['saldo'])
+                    ->setCellValue('E' . $column, "`".$key['rek_bsps'])
+                    ->setCellValue('F' . $column, "`".$key['rek_penampung'])
+                    ->setCellValue('G' . $column, "`".$key['rek_toko'])
+                    ->setCellValue('H' . $column, $key['time_stamp']);
+
+                $column++;
+            }
+            
+        } else {
+            $va = new M_va();
+            $res = $va->getByKdInst($kd_inst)->getResultArray();
+
+            $spreadsheet->setActiveSheetIndex(0)
+            ->setCellValue('A1', 'Kode Instansi')
+            ->setCellValue('B1', 'No Identitas')
+            ->setCellValue('C1', 'Nama')
+            ->setCellValue('D1', 'Nominal')
+            ->setCellValue('E1', 'Kode VA');
+
+            $column = 2;
+
+            foreach ($res as $key) {
+                $spreadsheet->setActiveSheetIndex(0)
+                    ->setCellValue('A' . $column, $key['kd_instansi'])
+                    ->setCellValue('B' . $column, "`".$key['no_identitas'])
+                    ->setCellValue('C' . $column, $key['nama'])
+                    ->setCellValue('D' . $column, "`".$key['nominal'])
+                    ->setCellValue('E' . $column, "`".$key['kd_va']);
+
+                $column++;
+            }
+        }
+
+        $writer = new Xlsx($spreadsheet);
+        $filename = date('Y-m-d-His'). '-Laporan Nominatif Virtual Account';
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename=' . $filename . '.xlsx');
+        header('Cache-Control: max-age=0');
+
+        $writer->save('php://output');
+    }
+
+    public function exportLapToXls()
+    {
+
+        $spreadsheet = new Spreadsheet();
+
+        $inst = new M_instansi();
+        $data = $inst->getInstansi();
+
+
+        $spreadsheet->setActiveSheetIndex(0)
+            ->setCellValue('A1', 'Kode Instansi')
+            ->setCellValue('B1', 'Nama Instansi')
+            ->setCellValue('C1', 'Status')
+            ->setCellValue('D1', 'Nomor Rekening');
+
+        $column = 2;
+
+        foreach ($data as $key) {
+            if ($key['status'] == 0) {
+                $stt = 'Aktif';
+            } else {
+                $stt = 'Tidak Aktif';
+            }
+            $spreadsheet->setActiveSheetIndex(0)
+                ->setCellValue('A' . $column, $key['kd_instansi'])
+                ->setCellValue('B' . $column, $key['nama'])
+                ->setCellValue('C' . $column, $stt)
+                ->setCellValue('D' . $column, "`".$key['norek']);
+
+            $column++;
+        }
+
+        $writer = new Xlsx($spreadsheet);
+        $filename = date('Y-m-d-His'). '-Laporan Nominatif Instansi';
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename=' . $filename . '.xlsx');
+        header('Cache-Control: max-age=0');
+
+        $writer->save('php://output');
     }
 
     //ini fungsi action cari va yang lama

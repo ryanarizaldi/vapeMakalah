@@ -37,27 +37,62 @@
                         <div class="row mt-5">
                             <?php if (!empty($res)): ?>
                                 <table class="table table-bordered table-hover" id="myTable">
-                                    <thead>
-                                        <tr>
-                                            <td>Kode Instansi</td>
-                                            <td>No Identitas</td>
-                                            <td>Nama</td>
-                                            <td>Kode VA</td>
-                                            <td>Nominal</td>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php foreach ($res as $key): ?>
+                                    <?php if(!empty($bsps)){?>
+                                        <thead>
                                             <tr>
-                                                <td><?= $key['kd_instansi'] ?></td>
-                                                <td><?= $key['no_identitas'] ?></td>
-                                                <td><?= $key['nama'] ?></td>
-                                                <td><?= $key['kd_va'] ?></td>
-                                                <td><?= $key['nominal'] ?></td>
+                                                <td>Kode Instansi</td>
+                                                <td>Nomor Virtual Account</td>
+                                                <td>Nama</td>
+                                                <td>Saldo</td>
+                                                <td>Rekening BSPS</td>
+                                                <td>Rekening Penampung</td>
+                                                <td>Rekening Toko</td>
+                                                <td>Rekening Tukang</td>
+                                                <td>Timestamp</td>
                                             </tr>
-                                        <?php endforeach; ?>
-                                    </tbody>
+                                        </thead>
+                                        <tbody>
+                                            <?php foreach ($res as $key): ?>
+                                                <tr>
+                                                    <td><?= $key['kd_instansi'] ?></td>
+                                                    <td><?= $key['no_va'] ?></td>
+                                                    <td><?= $key['nama'] ?></td>
+                                                    <td><?= $key['saldo'] ?></td>
+                                                    <td><?= $key['rek_bsps'] ?></td>
+                                                    <td><?= $key['rek_penampung'] ?></td>
+                                                    <td><?= $key['rek_toko'] ?></td>
+                                                    <td><?= $key['rek_tukang'] ?></td>
+                                                    <td><?= $key['time_stamp'] ?></td>
+                                                </tr>
+                                            <?php endforeach; ?>
+                                        </tbody>
+                                    <?php } else {?>
+                                        <thead>
+                                            <tr>
+                                                <td>Kode Instansi</td>
+                                                <td>No Identitas</td>
+                                                <td>Nama</td>
+                                                <td>Kode VA</td>
+                                                <td>Nominal</td>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php foreach ($res as $key): ?>
+                                                <tr>
+                                                    <td><?= $key['kd_instansi'] ?></td>
+                                                    <td><?= $key['no_identitas'] ?></td>
+                                                    <td><?= $key['nama'] ?></td>
+                                                    <td><?= $key['kd_va'] ?></td>
+                                                    <td><?= $key['nominal'] ?></td>
+                                                </tr>
+                                            <?php endforeach; ?>
+                                        </tbody>
+                                    <?php } ?>
                                 </table>
+                                <div class="col-md-3">
+                                    <a href="<?=base_url("Admin/exportVaToXls/$kd_inst")?>" class="btn btn-success">Export to Excel</a>
+
+                                </div>
                             <?php endif; ?>
                         </div>
                     </div>
