@@ -3,7 +3,7 @@
 
 <div class="container">
     <div class="contentTitle">
-        <h3>Cari Instansi</h3>
+        <h3>Pendaftaran Instansi</h3>
     </div>
     <div class="row">
         <div class="centerBox">

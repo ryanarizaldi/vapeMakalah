@@ -21,10 +21,13 @@ class Admin extends BaseController
         // echo view('template');
         // $test = new M_instansi();
         // echo $test->test();
+        // dd(session()->get('isTeller'));
         
-        echo view('adminLayout/v_home');
+        return view('adminLayout/v_home');
         // echo "asd";
     }
+
+    
 
     public function tambahInstansi()
     {
@@ -92,7 +95,7 @@ class Admin extends BaseController
             $no_identitas = $row[1];
             $nama = $row[2];
             $nominal = $row[3];
-            $kd_va = "0$kd_instansi$no_identitas";
+            $kd_va = "00$kd_instansi$no_identitas";
  
             $sql = [
                 "kd_instansi"   => $kd_instansi,
@@ -688,6 +691,189 @@ class Admin extends BaseController
 
         $writer->save('php://output');
     }
+
+    public function pembayaran()
+    {
+        return view('adminLayout/v_pembayaran');
+    }
+
+    public function cekVa()
+    {
+        function formatRupiah($num)
+        {
+            $res = "Rp " . number_format($num,2,',','.');
+            return $res;
+        }
+
+        $kd_va = $this->request->getPost("kd_va");
+
+        $url = 'http://118.97.30.43:9999/gw_vape/vape_inquery.php';
+            $ch = curl_init($url);
+
+            //setup request to send json via POST
+            $data = array(
+                'usergw' => "vape",
+                "passgw" => "vape123*",
+                'va' => $kd_va
+            );
+
+            $payload = json_encode($data);
+
+            //attach encoded JSON string to the POST fields
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+
+            //set the content type to application/json
+            curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type:application/json'));
+
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+            $response = curl_exec($ch);
+            
+            $info = curl_getinfo($ch);
+
+            $result = json_decode($response, true);
+
+
+            curl_close($ch);
+            if ($result['rCode'] == 0) {
+                $nama_va = $result['nama_va'];
+                $norek_instansi = $result['norek_instansi'];
+                $no_identitas = $result['no_identitas'];
+                $nominal = formatRupiah($result['nominal']);
+                session()->setFlashdata('sucInqueryVA', "<ul>
+                                                                <li>Nama:                       $nama_va</li>
+                                                                <li>Nomor rekening Instansi:    $norek_instansi</li>
+                                                                <li>Nomor Identitas:            $no_identitas</li>
+                                                                <li>Nominal:                    <span class='nominal'>$nominal</span></li>
+                                                            </ul>");
+                $data = [
+                    'norek_instansi' => $norek_instansi,
+                    'kd_va' => $kd_va,
+                    'nominal' => $result['nominal'],
+                    'nama_va' => $nama_va,
+                    'no_identitas' => $no_identitas
+                ];
+            return view('adminLayout/v_pembayaran', $data);
+
+            } else if ($result) {
+                session()->setFlashdata('errInqueryVA', "Nomor VA: '$kd_va' Tidak Terdaftar");
+                return redirect()->back()->withInput();
+
+            }
+
+    }
+
+    public function cariRekeningPembayaran()
+    {
+        $va = $this->request->getPost("kd_va");
+        $nominal = $this->request->getPost("nominal");
+        $rek_instansi = $this->request->getPost("rek_instansi");
+        $norek = $this->request->getPost("norek");
+        $url = 'http://118.97.30.43:9999/gw_vape/info_rekening.php';
+        $ch = curl_init($url);
+        $data = array(
+            'usergw' => "vape",
+            "passgw" => "vape123*",
+            'norek' => $norek
+        );
+        $payload = json_encode($data);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type:application/json'));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $response = curl_exec($ch);
+        $info = curl_getinfo($ch);
+        $result = json_decode($response, true);
+        curl_close($ch);
+
+        if (!empty($result) && $result['rCode'] == "00") {
+            $data = [
+                'result' => $result,
+                'norek_instansi' => $rek_instansi,
+                'kd_va' => $va,
+                'nominal' => $nominal
+            ];
+            $name = $result['result']['FULLNM'];
+            session()->setFlashdata('sucCekRek', "Rekening ditemukan atas nama $name");
+            return view('adminLayout/v_pembayaran', $data);
+        } else {
+            $data = [
+                'result' => $result,
+                'norek_instansi' => $rek_instansi,
+                'kd_va' => $va,
+                'nominal' => $nominal,
+                'success' => FALSE
+            ];
+            session()->setFlashdata('errCekRek', "Nomor Rekening Tidak Ditemukan");
+            return view('adminLayout/v_pembayaran', $data);
+
+        }
+    }
+
+    public function transaksiTunai()
+    {
+        $va = $this->request->getPost("kd_va");
+        $nominal = $this->request->getPost("nominal");
+        $rek_instansi = $this->request->getPost("rek_instansi");
+        $time = date("Hi");
+        $arsip = substr($va, -6).$time;
+        $url = 'http://118.97.30.43:9999/gw_vape/vape_posting.php';
+        $ch = curl_init($url);
+        $data = array(
+            "usergw" => "vape",
+            "passgw" => "vape123*",
+            "ipadd" => "10.10.21.13",
+            "va" => $va,
+            "nominal" => $nominal,
+            "rek_db" => session()->get('id_cabang').session()->get('rek_teller')."360",
+            "rek_kr" => $rek_instansi,
+            "no_arsip" => $arsip,
+            "kd_user" => session()->get('uname')
+        );
+
+        $payload = json_encode($data);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type:application/json'));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $response = curl_exec($ch);
+        $info = curl_getinfo($ch);
+        $result = json_decode($response, true);
+        curl_close($ch);
+        dd($result);
+    }
+
+    public function transaksiPindahBuku()
+    {
+        $va = $this->request->getPost("kd_va");
+        $nominal = $this->request->getPost("nominal");
+        $rek_instansi = $this->request->getPost("rek_instansi");
+        $time = date("Hi");
+        $arsip = substr($va, -6).$time;
+        $url = 'http://118.97.30.43:9999/gw_vape/vape_posting.php';
+        $ch = curl_init($url);
+        $data = array(
+            "usergw" => "vape",
+            "passgw" => "vape123*",
+            "ipadd" => "10.10.21.13",
+            "va" => $va,
+            "nominal" => $nominal,
+            "rek_db" => session()->get('id_cabang').session()->get('rek_teller')."360",
+            "rek_kr" => $rek_instansi,
+            "no_arsip" => $arsip,
+            "kd_user" => session()->get('uname')
+        );
+
+        $payload = json_encode($data);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type:application/json'));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $response = curl_exec($ch);
+        $info = curl_getinfo($ch);
+        $result = json_decode($response, true);
+        curl_close($ch);
+        dd($result);
+    }
+
+    
 
     //ini fungsi action cari va yang lama
     // public function actionCariVa()

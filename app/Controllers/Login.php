@@ -92,15 +92,27 @@ class Login extends BaseController
         // dd($response);
         if($response['rCode'] == 00){
             session()->set([
+                'uname' => $response['result']['USERMAP']['USERID'],
                 'nama' => $response['result']['USERMAP']['USERNM'],
                 'cabang' => $response['result']['BRANCHMAP']['BRANCHNM'],
                 'id_cabang' => $response['result']['BRANCHMAP']['BRANCHID'],
+                'roles_map' => $response['result']['ROLESMAP'],
                 'logged_in' => TRUE
             ]);
+
+            $roles = session()->get('roles_map');
+            foreach ($roles as $key) {
+                if ($key['ROLEID'] == 06) {
+                    session()->set([
+                        'rek_teller' => $response['result']['LIMIT_USER']['IACCNBR'],
+                        'isTeller' => TRUE,
+                    ]);
+                }
+            }
             return redirect()->to(base_url('Admin'));
         } else {
-            session()->setFlashdata('error', "ini err messagenya");
-            // session()->setFlashdata('error', $response['message'].'. Error Code: '.$response['rCode']);
+            // session()->setFlashdata('error', "ini err messagenya");
+            session()->setFlashdata('error', $response['message'].'. Error Code: '.$response['rCode']);
             $errmsg = session()->getFlashdata('error');
             // echo $errmsg;
             // dd($errmsg);

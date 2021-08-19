@@ -84,6 +84,15 @@ a .kanan {
   margin-right: 15px;
 }
 
+.nominal {
+  font-weight: 900 !important;
+  font-size: 1.5em;
+  margin-left: 15px;
+}
+
+.no-show {
+  display: none !important;
+}
 /* .navbar-header{
     background-color: #2A388A;
     color: white !important;

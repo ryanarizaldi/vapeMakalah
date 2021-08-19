@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="<?= base_url() ?>/assets/css/style.css">
     <link rel="stylesheet" type="text/css" href="<?= base_url() ?>/assets/css/datatables.css">
     <link rel="stylesheet" type="text/css" href="<?= base_url() ?>/assets/css/bootstrap.css">
+    <link rel="stylesheet" type="text/css" href="<?= base_url() ?>/assets/swal/sweetalert2.css">
+    <script src="<?= base_url() ?>/assets/swal/sweetalert2.all.js"></script>
     <script src="<?= base_url() ?>/assets/js/jquery.js"></script>
 
 
@@ -29,8 +31,19 @@
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
                                 <li><a class="dropdown-item" href="<?= base_url() ?>/admin/tambah_instansi">Instansi</a></li>
-                                <li><a class="dropdown-item" href="#">Virtual Account</a></li>
-                                <li><a class="dropdown-item" href="<?= base_url() ?>/admin/upload">Test Upload</a></li>
+                                <li><a class="dropdown-item" href="<?= base_url() ?>/admin/upload">Virtual Account</a></li>
+                                <?php if (!empty(session()->get('isTeller'))) :?>
+                                    <li><a class="dropdown-item" href="<?= base_url() ?>/admin/pembayaran">Pembayaran</a></li>
+                                <?php endif; ?>                                    
+                            </ul>
+                        </li>
+
+                        <li class="nav-item dropdown blackme">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown">
+                                <strong  class="blackme">Pemeliharaan</strong>
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                                <li><a class="dropdown-item" href="<?= base_url() ?>/admin/cari_instansi">Instansi</a></li>
                             </ul>
                         </li>
 
