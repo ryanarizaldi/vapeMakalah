@@ -750,6 +750,7 @@ class Admin extends BaseController
                     'norek_instansi' => $norek_instansi,
                     'kd_va' => $kd_va,
                     'nominal' => $result['nominal'],
+                    'nominalRP' => $nominal,
                     'nama_va' => $nama_va,
                     'no_identitas' => $no_identitas
                 ];
@@ -765,10 +766,18 @@ class Admin extends BaseController
 
     public function cariRekeningPembayaran()
     {
+        function formatRupiah($num)
+        {
+            $res = "Rp " . number_format($num,2,',','.');
+            return $res;
+        }
+
         $va = $this->request->getPost("kd_va");
         $nominal = $this->request->getPost("nominal");
         $rek_instansi = $this->request->getPost("rek_instansi");
         $norek = $this->request->getPost("norek");
+        $nama_va = $this->request->getPost("nama_va");
+        $no_identitas = $this->request->getPost("no_identitas");
         $url = 'http://118.97.30.43:9999/gw_vape/info_rekening.php';
         $ch = curl_init($url);
         $data = array(
@@ -790,11 +799,16 @@ class Admin extends BaseController
                 'result' => $result,
                 'norek_instansi' => $rek_instansi,
                 'kd_va' => $va,
-                'nominal' => $nominal
+                'nominalRP' => formatRupiah($nominal),
+                'nominal' => $nominal,
+                'nama_va' => $nama_va,
+                'norek' => $norek,
+                'no_identitas' => $no_identitas
+
             ];
             $name = $result['result']['FULLNM'];
             session()->setFlashdata('sucCekRek', "Rekening ditemukan atas nama $name");
-            return view('adminLayout/v_pembayaran', $data);
+            return view('adminLayout/v_pembayaran_pindah_buku', $data);
         } else {
             $data = [
                 'result' => $result,
@@ -814,6 +828,10 @@ class Admin extends BaseController
         $va = $this->request->getPost("kd_va");
         $nominal = $this->request->getPost("nominal");
         $rek_instansi = $this->request->getPost("rek_instansi");
+        $nominalRP = $this->request->getPost("nominalRP");
+        // $nama_va = $this->request->getPost("nama_va");
+        // $no_identitas = $this->request->getPost("no_identitas");
+        
         $time = date("Hi");
         $arsip = substr($va, -6).$time;
         $url = 'http://118.97.30.43:9999/gw_vape/vape_posting.php';
@@ -824,10 +842,16 @@ class Admin extends BaseController
             "ipadd" => "10.10.21.13",
             "va" => $va,
             "nominal" => $nominal,
+            "nominalRP" => $nominalRP,
             "rek_db" => session()->get('id_cabang').session()->get('rek_teller')."360",
             "rek_kr" => $rek_instansi,
             "no_arsip" => $arsip,
-            "kd_user" => session()->get('uname')
+            "kd_user" => session()->get('uname'),
+            "cabang" => session()->get('id_cabang'),
+            "metode" => "Tunai",
+            "timeStamp" => date("Y-m-d H:m:s")
+            
+
         );
 
         $payload = json_encode($data);
@@ -838,7 +862,13 @@ class Admin extends BaseController
         $info = curl_getinfo($ch);
         $result = json_decode($response, true);
         curl_close($ch);
-        dd($result);
+        // dd($result, $data);
+        if (!empty($result)) {
+            return view('adminLayout/v_jurnal_transaksi', $data);
+        } else {
+            session()-setFlashdata('errBayar', "Terjadi Kesalahan");
+            return redirect()->back()->withInput();
+        }
     }
 
     public function transaksiPindahBuku()
@@ -846,6 +876,7 @@ class Admin extends BaseController
         $va = $this->request->getPost("kd_va");
         $nominal = $this->request->getPost("nominal");
         $rek_instansi = $this->request->getPost("rek_instansi");
+        $nominalRP = $this->request->getPost("nominalRP");
         $time = date("Hi");
         $arsip = substr($va, -6).$time;
         $url = 'http://118.97.30.43:9999/gw_vape/vape_posting.php';
@@ -856,10 +887,16 @@ class Admin extends BaseController
             "ipadd" => "10.10.21.13",
             "va" => $va,
             "nominal" => $nominal,
+            "nominalRP" => $nominalRP,
             "rek_db" => session()->get('id_cabang').session()->get('rek_teller')."360",
             "rek_kr" => $rek_instansi,
             "no_arsip" => $arsip,
-            "kd_user" => session()->get('uname')
+            "kd_user" => session()->get('uname'),
+            "cabang" => session()->get('id_cabang'),
+            "metode" => "Pindah Buku",
+            "timeStamp" => date("Y-m-d H:m:s")
+
+
         );
 
         $payload = json_encode($data);
@@ -870,9 +907,17 @@ class Admin extends BaseController
         $info = curl_getinfo($ch);
         $result = json_decode($response, true);
         curl_close($ch);
-        dd($result);
+        if (!empty($result)) {
+            // $data = ["asd" => "ini asd"];
+            return view('adminLayout/v_jurnal_transaksi', $data, $result);
+        } else {
+            session()-setFlashdata('errBayar', "Terjadi Kesalahan");
+            return redirect()->back()->withInput();
+        }
+        
     }
 
+    
     
 
     //ini fungsi action cari va yang lama
