@@ -22,5 +22,10 @@ class M_va extends Model
     {
         return $this->query("SELECT * from va2 where nama like '%$name%' ");
     }
+
+    public function getNameByVa($kd_va)
+    {
+        return $this->query("SELECT nama from va2 where kd_va = '$kd_va' ");
+    }
 }
 

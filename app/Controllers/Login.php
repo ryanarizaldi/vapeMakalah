@@ -90,7 +90,10 @@ class Login extends BaseController
         //     return redirect()->to('/');
         // }
         // dd($response);
-        if($response['rCode'] == 00){
+        if(empty($response)){
+            session()->setFlashdata('error', 'Terjadi Kesalahan, Periksa Koneksi Internet Anda atau Coba Dalam Beberapa Saat Lagi');
+            return view('loginPage/v_login');
+        } else if($response['rCode'] == 00 ) {
             session()->set([
                 'uname' => $response['result']['USERMAP']['USERID'],
                 'nama' => $response['result']['USERMAP']['USERNM'],
@@ -111,14 +114,10 @@ class Login extends BaseController
             }
             return redirect()->to(base_url('Admin'));
         } else {
-            // session()->setFlashdata('error', "ini err messagenya");
             session()->setFlashdata('error', $response['message'].'. Error Code: '.$response['rCode']);
             $errmsg = session()->getFlashdata('error');
-            // echo $errmsg;
-            // dd($errmsg);
-            return redirect()->to(base_url( 'login' ));
-            // return redirect()->to('/');
-            // return redirect()->to(base_url('Login'));
+            return view('loginPage/v_login');
+            
         }
     }
         

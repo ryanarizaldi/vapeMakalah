@@ -15,7 +15,9 @@ class M_bsps extends Model
 
     public function getName($no_va)
     {
-        return $this->query("SELECT nama from bsps where no_va = '$no_va'");
+        $res =  $this->query("SELECT nama from bsps where no_va = '$no_va'")->getResult();
+        dd($no_va);
+        return;
     }
 
     public function getByVa($no_va)

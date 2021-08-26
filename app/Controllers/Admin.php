@@ -439,11 +439,13 @@ class Admin extends BaseController
         $tgl_awal = $this->request->getPost('tgl_awal');
         $tgl_akhir = $this->request->getPost('tgl_akhir');
         $no_va = $this->request->getPost('no_va');
+        $kd_instansi = $this->request->getPost('kd_instansi');
 
         // dd($tgl_akhir, $tgl_akhir);
 
         $history = new M_history();
         $bsps = new M_bsps();
+        $va = new M_va();
         if (!$this->validate([
                 'tgl_awal' => [
                     'rules' => 'required',
@@ -456,44 +458,71 @@ class Admin extends BaseController
                 'errors' => [
                     'required' => 'Rentang Tanggal Akhir Harus diisi!'
                 ]
-                ],
-                'no_va' => [
-                    'rules' => 'required',
-                    'errors' => [
-                        'required' => 'Nomor Rekening VA Harus diisi!'
-                    ]
                 ]
             ])) {
                 session()->setFlashdata('errHistory', $this->validator->listErrors());
                 return view('adminLayout/v_history_va');
 
             }
-        $name = $bsps->getName($no_va)->getResult();
-        // dd($name);
-        if (empty($name)) {
-            session()->setFlashData('errHistory', "Nomor wqVirtual Account '$no_va' Tidak Ditemukan");
-            // return redirect(base_url('/adminLayout/v_history_va'));
-        }
-        // dd($name);
-        $sql = $history->getRekeningKoran($tgl_awal, $tgl_akhir, $no_va)->getResult();
-        
-        if (!empty($sql)) {
-            $data = [
+
+        if (!empty($kd_instansi)) {
+            //tulis validasi form disini
+            $sql = $history->getHistorybyInst($kd_instansi, $tgl_awal, $tgl_akhir)->getResult();
+            if (!empty($sql)) {
+                $noVa = $sql[0]->kd_va;
+                $name = $va->getNameByVa($noVa)->getResult();
+                $data = [
                 'sql' => $sql,
                 'tgl_awal' => $tgl_awal,
                 'tgl_akhir' => $tgl_akhir,
                 'no_va' => $no_va,
-                'name' => $name
+                'name' => $name,
+                'kd_instansi' => $kd_instansi,
+                'isNova' => FALSE
             ];
+            session()->remove('errHistory');
             session()->setFlashData('succHistory', "Pencarian Berhasil!");
             return view('adminLayout/v_history_va', $data);
-        } else {
+            } else if(empty($sql)){
+                session()->remove('succHistory');
+                session()->setFlashData('errHistory', "Data History Tidak Ditemukan");
+                return view('adminLayout/v_history_va');
+            }
+
+            // dd($sql[0]->kd_va);
+        } else if(!empty($no_va)) {
+            $name = $va->getNameByVa($no_va)->getResult();
+            // dd($name);
+            if (empty($name)) {
+                session()->remove('succHistory');
+                session()->setFlashData('errHistory', "Nomor Virtual Account '$no_va' Tidak Ditemukan");
+                return view('adminLayout/v_history_va');
+            }
+            $sql = $history->getRekeningKoran($tgl_awal, $tgl_akhir, $no_va)->getResult();
+            
+            if (!empty($sql)) {
+                $data = [
+                    'sql' => $sql,
+                    'tgl_awal' => $tgl_awal,
+                    'tgl_akhir' => $tgl_akhir,
+                    'no_va' => $no_va,
+                    'name' => $name,
+                    'isNova' => TRUE
+                ];
+                session()->remove('errHistory');
+                session()->setFlashData('succHistory', "Pencarian Berhasil!");
+                return view('adminLayout/v_history_va', $data);
+            }
+        }  else {
+            session()->remove('succHistory');
             session()->setFlashData('errHistory', "Data History Tidak Ditemukan! Cek Lagi Rentang Tanggal Dan Nomor Virtual Account");
             return view('adminLayout/v_history_va');
         }
+        
 
         
     }
+
 
     public function printVa($tgl_awal, $tgl_akhir, $no_va)
     {
@@ -509,6 +538,24 @@ class Admin extends BaseController
         ];
 
         return view('adminLayout/v_print_history_va', $data);
+    }
+
+    public function printVaByKdInstansi($tgl_awal, $tgl_akhir, $kd_instansi)
+    {
+        $va = new M_va();
+        $history = new M_history();
+
+        $sql = $history->getHistorybyInst($kd_instansi, $tgl_awal, $tgl_akhir)->getResult();
+        $noVa = $sql[0]->kd_va;
+        $name = $va->getNameByVa($noVa)->getResult();
+
+        $data = [
+            'sql' => $sql,
+            'no_va' => $noVa,
+            'name' => $name
+        ];
+        return view('adminLayout/v_print_history_va_instansi', $data);
+
     }
 
     public function cariVa()
@@ -815,11 +862,19 @@ class Admin extends BaseController
                 'norek_instansi' => $rek_instansi,
                 'kd_va' => $va,
                 'nominal' => $nominal,
-                'success' => FALSE
+                'nominalRP' => formatRupiah($nominal),
+                'nama_va' => $nama_va,
+                'no_identitas' => $no_identitas,
+                'success' => FALSE,
+                'swal' => TRUE
             ];
             session()->setFlashdata('errCekRek', "Nomor Rekening Tidak Ditemukan");
             return view('adminLayout/v_pembayaran', $data);
-
+            // $eko ="<script type='javascript'>
+            //             console.log('ads');
+            //         </script>"; 
+            
+            // return $eko;
         }
     }
 
@@ -895,8 +950,6 @@ class Admin extends BaseController
             "cabang" => session()->get('id_cabang'),
             "metode" => "Pindah Buku",
             "timeStamp" => date("Y-m-d H:m:s")
-
-
         );
 
         $payload = json_encode($data);

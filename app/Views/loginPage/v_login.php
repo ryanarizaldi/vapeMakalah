@@ -38,6 +38,7 @@
     </style>
 </head>
 <body>
+    
     <div class="container">
         <div class="row">
             <div class="col-md-4"></div>
@@ -47,6 +48,7 @@
                     <form action="<?= base_url()?>/Login/actionLogin" method="post">    
                         <div class="title-login">
                             <img  src="<?= base_url() ?> /assets/img/bp.png" alt="" width="240" height="120">
+                            
                             <!-- <h1 class="h3 mb-3 fw-normal">Silahkan Login</h1> -->
 
                         </div>
@@ -67,11 +69,16 @@
                             <input type="password" class="form-control" id="floatingPassword" placeholder="Password" name="password">
                             <label for="floatingPassword">Password</label>
                         </div>
-
                         
-                        <button class="w-100 btn btn-lg btn-primary" type="submit">Login</button>
+                        <div class="form-check form-switch mb-3 ml-5">
+                            <input class="form-check-input" type="checkbox" id="flexSwitchCheckChecked" onclick="seePass()" style="cursor: pointer">
+                            <label class="form-check-label" for="flexSwitchCheckChecked">Show Password</label>
+                        </div>
+                        <button class="w-100 btn btn-lg btn-primary mb-3" type="submit">Login</button>
+                        <br>
+                        
                         <div class="title-login">
-
+                            
                             <p class="mt-5 mb-3 text-muted">VAPE: Virtual Account Payment</p>
                         </div>
                     </form>
@@ -80,7 +87,18 @@
             <div class="col-md-4"></div>
         </div>
     </div>
+
     
+    <script>
+        function seePass () {
+            let password = document.getElementById("floatingPassword")
+            if (password.type == "password") {
+                password.type = "text"
+            } else {
+                password.type = "password"
+            }
+        }
+    </script>
 
     <script src="<?= base_url()?>/assets/js/bootstrap.js"></script>
     <script src="<?= base_url()?>/assets/js/button.js"></script>

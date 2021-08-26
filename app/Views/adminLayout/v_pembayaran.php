@@ -11,12 +11,15 @@
                 <div class="card-body">
                     <form action="<?= base_url()?>/Admin/cekVa" class="mt-3" method="post">
                         <div class="mb-3 row">
+                            <?php if(!empty(session()->getFlashdata('errCekRek'))): ?>
+                                salah
+                            <?php endif; ?>
                             <label for="kd_va" class="col-sm-2 col-form-label">Nomor Virtual Account</label>
                             <div class="col-sm-8">
                                 <input type="text" class="form-control" id="kd_va" name="kd_va">
                             </div>
                             <div class="col-sm-2">
-                                <button type="submit" class="btn btn-primary" >Cari</button>
+                                <button type="submit" class="btn btn-primary">Cari</button>
                             </div>
                         </div>
                     </form>
@@ -55,7 +58,7 @@
                                 <input type="text" value="<?= $nominal ?>" name="nominal">
                                 <input type="text" value="<?= $nominalRP ?>" name="nominalRP">
                                 <input type="text" value="<?= $norek_instansi ?>" name="rek_instansi">
-                                 <input type="text" value="<?= $nama_va ?>" name="nama_va">
+                                <input type="text" value="<?= $nama_va ?>" name="nama_va">
                                 <input type="text" value="<?= $no_identitas ?>" name="no_identitas">
                             </div>
                             <div class="text-center mt-5">
